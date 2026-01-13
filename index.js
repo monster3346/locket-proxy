@@ -1,0 +1,28 @@
+export default async function handler(req, res) {
+  // ===== 0. CORS & preflight =====
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'authorization, content-type, x-api-key');
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
+  // ===== 1. Log email =====
+  const auth = req.headers.authorization || '';
+  const email = auth
+    ? Buffer.from(auth.split('.')[1], 'base64').toString().split('"email":"')[1]?.split('"')[0] || 'unknown'
+    : 'unknown';
+  console.log(new Date().toISOString(), email);
+
+  // ===== 2. Thêm key gốc =====
+  const headers = { ...req.headers, 'x-api-key': 'LKD-LOCKETDIO-AB02F55KYM55DD02MM03YY25-LKD' };
+
+  // ===== 3. Forward =====
+  const url = 'https://api.locket-dio.com' + req.url;
+  const ans = await fetch(url, {
+    method: req.method,
+    headers,
+    body: req.method !== 'GET' ? JSON.stringify(req.body) : undefined
+  }).then(r => r.json());
+
+  // ===== 4. Trả về =====
+  res.json(ans);
+}
